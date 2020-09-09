@@ -32,6 +32,12 @@ pub trait State {
 ///
 /// The [`event` method on the `State` trait](trait.State.html#method.event) will recieve
 /// events as they occur.
+///
+/// # Examples
+///
+/// The [`events`](https://github.com/17cupsofcoffee/tetra/blob/main/examples/events.rs)
+/// example demonstrates how to handle events.
+#[non_exhaustive]
 #[derive(Debug, Clone)]
 pub enum Event {
     /// The game window was resized.
@@ -76,7 +82,14 @@ pub enum Event {
     /// The mouse was moved.
     MouseMoved {
         /// The new position of the mouse, in window co-ordinates.
+        ///
+        /// If [relative mouse mode](./window/fn.set_relative_mouse_mode.html) is
+        /// enabled, this field is not guarenteed to update.
         position: Vec2<f32>,
+
+        /// The movement of the mouse, relative to the `position` of the previous
+        /// `MouseMoved` event.
+        delta: Vec2<f32>,
     },
 
     /// The mouse wheel was moved.
@@ -163,9 +176,4 @@ pub enum Event {
         /// The path of the file that was dropped.
         path: PathBuf,
     },
-
-    /// This is here so that adding new error types will not be a breaking change.
-    /// Can be removed once #[non_exhaustive] is stabilized.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }

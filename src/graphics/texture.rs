@@ -27,17 +27,22 @@ impl PartialEq for TextureSharedData {
 
 /// A texture, held in GPU memory.
 ///
-/// The following file formats are supported:
+/// # Supported Formats
 ///
-/// * PNG
-/// * JPEG
-/// * GIF
-/// * BMP
-/// * TIFF
-/// * TGA
-/// * WEBP
-/// * ICO
-/// * PNM
+/// Various file formats are supported, and can be enabled or disabled via Cargo features:
+///
+/// | Format | Cargo feature | Enabled by default? |
+/// |-|-|-|
+/// | PNG | `texture_png` | Yes |
+/// | JPEG | `texture_jpeg` | Yes |
+/// | GIF | `texture_gif` | Yes |
+/// | BMP | `texture_bmp` | Yes |
+/// | TIFF | `texture_tiff` | No |
+/// | TGA | `texture_tga` | No |
+/// | WebP | `texture_webp` | No |
+/// | ICO | `texture_ico` | No |
+/// | PNM | `texture_pnm` | No |
+/// | DDS/DXT | `texture_dds` | No |
 ///
 /// # Performance
 ///
@@ -48,6 +53,11 @@ impl PartialEq for TextureSharedData {
 /// original instance and the clone via [reference-counting](https://doc.rust-lang.org/std/rc/struct.Rc.html).
 /// This does mean, however, that updating a `Texture` (for example, changing its filter mode) will also
 /// update any other clones of that `Texture`.
+///
+/// # Examples
+///
+/// The [`texture`](https://github.com/17cupsofcoffee/tetra/blob/main/examples/texture.rs)
+/// example demonstrates how to draw a simple texture.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Texture {
     pub(crate) data: Rc<TextureSharedData>,

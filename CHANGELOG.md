@@ -10,9 +10,63 @@ This project adheres to Semantic Versioning.
 
 ### Changed
 
+* Updated `hashbrown` to 0.8.
+* Updated `glow` to 0.6.
+
+## [0.5.0] - 2020-09-02
+
+### Added
+
+* `SoundInstance::state` and `SoundInstance::set_state` have been added, which allow you to check the current state of playback and modify it respectively. ([@puppetmaster-](https://github.com/puppetmaster-) in [#205](https://github.com/17cupsofcoffee/tetra/pull/205))
+    * These methods use a new enum called `SoundState`, which represents the possible states that a `SoundInstance` can be in.
+* **Breaking:** The position of the mouse relative to the previous motion event can now be obtained via the `delta` field on `Event::MouseMoved`. ([@GGalizzi](https://github.com/GGalizzi) in [#206](https://github.com/17cupsofcoffee/tetra/pull/206))
+    * As existing code may have been exhastively pattern matching on `Event::MouseMoved`'s data, this is technically a breaking change.
+* The window can now be set to `relative_mouse_mode`, which allows the mouse to move outside of the bounds of the window while still reporting motion events. ([@GGalizzi](https://github.com/GGalizzi) in [#206](https://github.com/17cupsofcoffee/tetra/pull/206))
+* Various feature flags have been added, allowing you to shrink your dependency tree by removing unused functionality.
+
+### Changed
+
+* **Breaking**: ICO, TIFF, PNM, DDS/DXT and TGA texture loading is now off by default.
+    * Feature flags can be used to re-enable them.
+* **Breaking:** `graphics::set_texture` is now private.
+    * There was no meaningful way to use this function without access to other private functions, so it has been hidden to avoid confusion.
+* Updated `bytemuck` to 1.4.
+* **Breaking:** Updated `vek` to 0.12.
+    * As Vek is exposed via Tetra's API in the form of the `tetra::math` module, this is potentially a breaking change.
+
+## [0.4.2] - 2020-08-14
+
+### Added
+
+* A `visible_rect` method has been added to `Camera`, which calculates the area of the screen that is currently visible. ([@VictorKoenders](https://github.com/VictorKoenders) in [#201](https://github.com/17cupsofcoffee/tetra/pull/201))
+
+### Changed
+
+* Various improvements have been made to the documentation.
+* `Camera::project` and `Camera::unproject` no longer require `Camera::update` to be called to give correct results.
+    * This is for consistency with the new `visible_rect` method.
+* Textures now use `CLAMP_TO_EDGE` wrapping, to avoid some sampling issues when drawing at non-integer co-ordinates.
+    * In the future, it may be made possible to select other wrapping modes.
+* Updated `bytemuck` to 1.3.
+
+### Fixed
+
+* The matrix created by a `Camera` now correctly reflects the viewport width and height before the first `update`.
+
+## [0.4.1] - 2020-08-02
+
+### Added
+
+* `ContextBuilder` can now be serialized and deserialized via Serde, if the `serde_support` feature is enabled. ([@puppetmaster-](https://github.com/puppetmaster-) in [#195](https://github.com/17cupsofcoffee/tetra/pull/195))
+    * Note that the available settings could change between releases of Tetra (semver permitting). If you need a config file schema that will be stable in the long term, consider making your own and then mapping it to Tetra's API, rather than relying on `ContextBuilder` to not change. 
+
+### Changed
+
+* The `TetraError` and `Event` enums are now marked as `non_exhaustive`.
+    * This is not a breaking change, as exaustive matching was already enforced via a hidden enum variant. This change just makes the code/docs/errors clearer, as well as potentially unlocking some compiler optimizations in the future.
 * Updated `glow` to 0.5.
 
-## [0.4.0]
+## [0.4.0] - 2020-06-24
 
 ### Added
 
@@ -515,7 +569,10 @@ for. This can be useful when implementing more complex animation behaviors. ([@V
 
 * Initial release!
 
-[Upcoming]: https://github.com/17cupsofcoffee/tetra/compare/0.4.0..HEAD
+[Upcoming]: https://github.com/17cupsofcoffee/tetra/compare/0.5.0..HEAD
+[0.5.0]: https://github.com/17cupsofcoffee/tetra/compare/0.4.2..0.5.0
+[0.4.2]: https://github.com/17cupsofcoffee/tetra/compare/0.4.1..0.4.2
+[0.4.1]: https://github.com/17cupsofcoffee/tetra/compare/0.4.0..0.4.1
 [0.4.0]: https://github.com/17cupsofcoffee/tetra/compare/0.3.6..0.4.0
 [0.3.6]: https://github.com/17cupsofcoffee/tetra/compare/0.3.5..0.3.6
 [0.3.5]: https://github.com/17cupsofcoffee/tetra/compare/0.3.4..0.3.5

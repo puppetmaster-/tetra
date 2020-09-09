@@ -1,13 +1,17 @@
 use crate::graphics::{self, GraphicsContext};
 use crate::input::{self, InputContext};
-use crate::platform::{self, AudioDevice, GraphicsDevice, Window};
+use crate::platform::{self, GraphicsDevice, Window};
 use crate::time::{self, TimeContext, Timestep};
 use crate::{Result, State};
+
+#[cfg(feature = "audio")]
+use crate::audio::AudioDevice;
 
 /// A struct containing all of the 'global' state within the framework.
 pub struct Context {
     pub(crate) window: Window,
     pub(crate) device: GraphicsDevice,
+    #[cfg(feature = "audio")]
     pub(crate) audio: AudioDevice,
     pub(crate) graphics: GraphicsContext,
     pub(crate) input: InputContext,
@@ -20,6 +24,7 @@ pub struct Context {
 impl Context {
     pub(crate) fn new(settings: &ContextBuilder) -> Result<Context> {
         // This needs to be initialized ASAP to avoid https://github.com/tomaka/rodio/issues/214
+        #[cfg(feature = "audio")]
         let audio = AudioDevice::new();
 
         let (window, gl_context, window_width, window_height) = Window::new(settings)?;
@@ -40,6 +45,7 @@ impl Context {
             window,
             device,
 
+            #[cfg(feature = "audio")]
             audio,
             graphics,
             input,
@@ -145,7 +151,22 @@ impl Context {
 }
 
 /// Settings that can be configured when starting up a game.
+///
+/// # Serde
+///
+/// Serialization and deserialization of this type (via [Serde](https://serde.rs/))
+/// can be enabled via the `serde_support` feature.
+///
+/// Note that the available settings could change between releases of
+/// Tetra (semver permitting). If you need a config file schema that will
+/// be stable in the long term, consider making your own and then mapping
+/// it to Tetra's API, rather than relying on `ContextBuilder` to not
+/// change.
 #[derive(Debug, Clone)]
+#[cfg_attr(
+    feature = "serde_support",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct ContextBuilder {
     pub(crate) title: String,
     pub(crate) window_width: i32,
@@ -159,6 +180,7 @@ pub struct ContextBuilder {
     pub(crate) borderless: bool,
     pub(crate) show_mouse: bool,
     pub(crate) grab_mouse: bool,
+    pub(crate) relative_mouse_mode: bool,
     pub(crate) quit_on_escape: bool,
     pub(crate) debug_info: bool,
 }
@@ -272,6 +294,23 @@ impl ContextBuilder {
         self
     }
 
+    /// Sets whether or not relative mouse mode should be enabled.
+    ///
+    /// While the mouse is in relative mode, the cursor is hidden and can move beyond the
+    /// bounds of the window. The [`delta` field of `Event::MouseMoved`](./enum.Event.html#variant.MouseMoved.field.delta)
+    /// can then be used to track the cursor's changes in position. This is useful when
+    /// implementing control schemes that require the mouse to be able to move infinitely
+    /// in any direction (for example, FPS-style movement).
+    ///
+    /// While this mode is enabled, the absolute position of the mouse may not be updated -
+    /// as such, you should not rely on it.
+    ///
+    /// Defaults to `false`.
+    pub fn relative_mouse_mode(&mut self, relative_mouse_mode: bool) -> &mut ContextBuilder {
+        self.relative_mouse_mode = relative_mouse_mode;
+        self
+    }
+
     /// Sets whether or not the game should close when the Escape key is pressed.
     ///
     /// Defaults to `false`.
@@ -312,6 +351,7 @@ impl Default for ContextBuilder {
             borderless: false,
             show_mouse: false,
             grab_mouse: false,
+            relative_mouse_mode: false,
             quit_on_escape: false,
             debug_info: false,
         }

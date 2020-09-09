@@ -1,7 +1,12 @@
 //! Functions and types relating to text rendering.
 
+// Without this, we'd have conditionally compile a ton more stuff to
+// avoid warnings when fonts are disabled:
+#![cfg_attr(not(feature = "font_ttf"), allow(unused))]
+
 mod cache;
 mod packer;
+#[cfg(feature = "font_ttf")]
 mod vector;
 
 use std::cell::{RefCell, RefMut};
@@ -14,6 +19,7 @@ use crate::graphics::text::cache::{FontCache, TextGeometry};
 use crate::graphics::{self, DrawParams, Drawable, Rectangle};
 use crate::Context;
 
+#[cfg(feature = "font_ttf")]
 pub use crate::graphics::text::vector::VectorFontBuilder;
 
 /// A font with an associated size, cached on the GPU.
@@ -25,6 +31,11 @@ pub use crate::graphics::text::vector::VectorFontBuilder;
 ///
 /// Cloning a `Font` is a very cheap operation, as the underlying data is shared between the
 /// original instance and the clone via [reference-counting](https://doc.rust-lang.org/std/rc/struct.Rc.html).
+///
+/// # Examples
+///
+/// The [`text`](https://github.com/17cupsofcoffee/tetra/blob/main/examples/text.rs)
+/// example demonstrates how to load a font and then draw some text.
 #[derive(Clone)]
 pub struct Font {
     data: Rc<RefCell<FontCache>>,
@@ -45,6 +56,7 @@ impl Font {
     /// * `TetraError::InvalidFont` will be returned if the font data was invalid.
     /// * `TetraError::PlatformError` will be returned if the GPU cache for the font
     ///   could not be created.
+    #[cfg(feature = "font_ttf")]
     pub fn vector<P>(ctx: &mut Context, path: P, size: f32) -> Result<Font>
     where
         P: AsRef<Path>,
@@ -68,6 +80,11 @@ impl Debug for Font {
 ///
 /// Cloning a `Text` is a fairly expensive operation, as it creates an entirely new copy of the
 /// object with its own cache.
+///
+/// # Examples
+///
+/// The [`text`](https://github.com/17cupsofcoffee/tetra/blob/main/examples/text.rs)
+/// example demonstrates how to load a font and then draw some text.
 #[derive(Debug, Clone)]
 pub struct Text {
     content: String,

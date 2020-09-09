@@ -8,7 +8,8 @@ use std::result;
 
 use image::ImageError;
 
-use crate::platform::DecoderError;
+#[cfg(feature = "audio")]
+use rodio::decoder::DecoderError;
 
 /// A specialized `Result` type for Tetra.
 ///
@@ -17,9 +18,7 @@ use crate::platform::DecoderError;
 pub type Result<T = ()> = result::Result<T, TetraError>;
 
 /// The types of error that can occur in a Tetra game.
-///
-/// Note that if you `match` on this enum, you will be forced to add a wildcard arm by the compiler.
-/// This is so that if a new error type is added later on, it will not break your code.
+#[non_exhaustive]
 #[derive(Debug)]
 pub enum TetraError {
     /// Returned when the underlying platform returns an unexpected error.
@@ -49,6 +48,7 @@ pub enum TetraError {
     InvalidFont,
 
     /// Returned when a sound cannot be decoded.
+    #[cfg(feature = "audio")]
     InvalidSound(DecoderError),
 
     /// Returned when not enough data is provided to fill a buffer.
@@ -68,11 +68,6 @@ pub enum TetraError {
     /// Returned when your game tried to change the display settings (e.g. fullscreen, vsync)
     /// but was unable to do so.
     FailedToChangeDisplayMode(String),
-
-    /// This is here so that adding new error types will not be a breaking change.
-    /// Can be removed once #[non_exhaustive] is stabilized.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl Display for TetraError {
@@ -91,6 +86,7 @@ impl Display for TetraError {
             TetraError::InvalidTexture(reason) => write!(f, "Invalid texture: {}", reason),
             TetraError::InvalidShader(reason) => write!(f, "Invalid shader: {}", reason),
             TetraError::InvalidFont => write!(f, "Invalid font"),
+            #[cfg(feature = "audio")]
             TetraError::InvalidSound(reason) => write!(f, "Invalid sound: {}", reason),
             TetraError::NotEnoughData { expected, actual } => write!(
                 f,
@@ -101,7 +97,6 @@ impl Display for TetraError {
                 write!(f, "Failed to change display mode: {}", reason)
             }
             TetraError::NoAudioDevice => write!(f, "No audio device was available for playback."),
-            TetraError::__Nonexhaustive => unreachable!(),
         }
     }
 }
@@ -115,11 +110,11 @@ impl Error for TetraError {
             TetraError::InvalidTexture(reason) => Some(reason),
             TetraError::InvalidShader(_) => None,
             TetraError::InvalidFont => None,
+            #[cfg(feature = "audio")]
             TetraError::InvalidSound(reason) => Some(reason),
             TetraError::NotEnoughData { .. } => None,
             TetraError::NoAudioDevice => None,
             TetraError::FailedToChangeDisplayMode(_) => None,
-            TetraError::__Nonexhaustive => unreachable!(),
         }
     }
 }
